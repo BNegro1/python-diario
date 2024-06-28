@@ -1,3 +1,8 @@
+
+# Importamos tester para verificar el codigo y sus resultados.
+# NO cambiar.
+from Tester.tester109 import *
+
 # As an example, here is an implementation of
 # the first problem "Ryerson Letter Grade":
 

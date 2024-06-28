@@ -15,7 +15,7 @@ import gzip
 import os.path
 import string
 from sys import version_info, exit
-import labs109
+import verificar_codigo
 from fractions import Fraction as F
 from datetime import date
 
@@ -23,7 +23,7 @@ from datetime import date
 # results you want to see first during the test run. Make each entry "name":N,
 # where N is how many test cases you want to see printed out. This also makes
 # the tester to run the tests for these functions first, regardless of their
-# position in the labs109.py file. Use the limit of -1 to say "all test cases".
+# position in the verificar_codigo.py file. Use the limit of -1 to say "all test cases".
 
 verbose_execution = {
     #   "function_one": 42,   # Print the first 42 test cases of function_one
@@ -41,7 +41,7 @@ version = "June 21, 2024"
 fixed_seed = 12345
 
 # Name of the file that contains the expected answers.
-expected_answers_file = 'expected_answers'
+expected_answers_file = 'Tester/expected_answers'
 
 # Markers used to separate the parts of the expected answers file.
 # These should never appear as the prefix of any expected answer.
@@ -62,7 +62,7 @@ can_record = False
 # 1. Set the value of use_record to False. Update the version info
 #    of this tester script in the above settings.
 # 2. Write your private solution function to your model solutions
-#    file labs109.py.
+#    file verificar_codigo.py.
 # 3. Write the corresponding test case generator in this script below.
 # 4. Add the individual test into the list of testcases list below,
 #    using None as its expected checksum for the moment.
@@ -120,8 +120,7 @@ def stringify_args(args, cutoff=2000):
 
 def test_one_function(f, test_generator, expected_checksum=None, recorder=None, expected_answers=None):
     function_name, recorded, output_len = f.__name__, None, 0
-    print(f"{function_name}: ", end="", flush=True)
-    # How many results of function calls to print out.
+    print(f"🔍 Función {function_name}: ", end="", flush=True)
     verb_count = verbose_execution.get(function_name, 0)
     if recorder:
         print(f"{function_prefix}{function_name}", file=recorder)
@@ -129,31 +128,24 @@ def test_one_function(f, test_generator, expected_checksum=None, recorder=None, 
         recorded = expected_answers.get(function_name, None)
     chk, start_time, crashed = sha256(), time(), False
     for (test_case_idx, test_args) in enumerate(test_generator(fixed_seed)):
-        # Convert a singleton of any non-tuple into singleton tuple.
         if not isinstance(test_args, tuple):
             test_args = (test_args,)
-        # Convert arguments to a string for safekeeping in case of discrepancy.
         test_args_string = stringify_args(test_args)
-        # Call the function to be tested with the arguments from the test tuple.
         try:
             result = f(*test_args)
         except Exception as e:  # catch any exception
             crashed = True
-            print(f"CRASH AT TEST CASE #{test_case_idx} WITH ARGS: {test_args_string}")
-            print(f"CAUGHT EXCEPTION: {e}")
+            print(f"💥 ERROR EN CASO DE PRUEBA #{test_case_idx} CON ARGUMENTOS: {test_args_string}")
+            print(f"🚨 EXCEPCIÓN CAPTURADA: {e}")
             break
-        # If the result is a set or dictionary, turn it into sorted list first.
         result = canonize(result)
-        # Print out the argument and result, if in verbose mode.
         if verb_count > 0 or verb_count == -1:
             verb_count -= 1 if verb_count > 0 else 0
-            print(f"{function_name} #{test_case_idx}: ", end="", flush=True)
+            print(f"📝 {function_name} #{test_case_idx}: ", end="", flush=True)
             print(test_args_string)
-            print(f"RESULT: {result}", flush=True)
-        # Update the checksum.
+            print(f"🔙 RESULTADO: {result}", flush=True)
         sr = str(result)
         chk.update(sr.encode('utf-8'))
-        # When in recording mode, write the answer to the record file.
         if recorder:
             output = sr.strip()
             print(output, file=recorder)
@@ -163,15 +155,15 @@ def test_one_function(f, test_generator, expected_checksum=None, recorder=None, 
         if use_expected_answers and expected_answers and test_case_idx < testcase_cutoff and recorded:
             if sr.strip() != recorded[test_case_idx]:
                 crashed = True
-                print(f"DISCREPANCY AT TEST CASE #{test_case_idx}: ")
-                print("ARGUMENTS: ", end="")
+                print(f"⚠️ DISCREPANCIA EN CASO DE PRUEBA #{test_case_idx}: ")
+                print("🔍 ARGUMENTOS: ", end="")
                 print(test_args_string)
-                print(f"EXPECTED: {recorded[test_case_idx]}")
-                print(f"RETURNED: {sr}")
+                print(f"✔️ ESPERADO: {recorded[test_case_idx]}")
+                print(f"❌ DEVUELTO: {sr}")
                 break
         total_time = time() - start_time
         if total_time > timeout_cutoff:
-            print(f"TIMEOUT AFTER TEST CASE #{test_case_idx}. FUNCTION REJECTED AS TOO SLOW.")
+            print(f"⏱️ TIEMPO EXCEDIDO DESPUÉS DEL CASO DE PRUEBA #{test_case_idx}. FUNCIÓN RECHAZADA POR SER DEMASIADO LENTA.")
             crashed = True
             break
     if not recorder:
@@ -181,23 +173,23 @@ def test_one_function(f, test_generator, expected_checksum=None, recorder=None, 
             print(digest)  # Expected checksum for the instructor to copy-paste
             return total_time
         elif not crashed and digest[:len(expected_checksum)] == expected_checksum:
-            print(f"Success in {total_time:.3f} seconds.")
+            print(f"✅ Éxito en {total_time:.3f} segundos.")
             return total_time
         elif crashed:
             return -1
         else:
-            print("CHECKSUM MISMATCH: AT LEAST ONE ANSWER WAS WRONG.")
-            print("YOUR FUNCTION HAS SOME EDGE CASE BUG THAT DID NOT MANIFEST")
-            print(f"IN THE FIRST {testcase_cutoff} TEST CASES. IF YOU CAN'T FIND THIS")
-            print("BUG AFTER SLEEPING OVER IT ONCE, PLEASE SEND YOUR FUNCTION")
-            print("TO ilkka.kokkarinen@gmail.com TO HELP IMPROVE THE QUALITY OF")
-            print(f"THESE AUTOMATED TEST CASES. ENSURE THAT YOUR {function_name}")
-            print("DOES NOT USE ANY FLOATING POINT CALCULATIONS WHOSE PRECISION")
-            print("RUNS OUT ONCE THE NUMBERS INVOLVED BECOME LARGE ENOUGH.")
+            print("❌ ERROR DE CHECKSUM: AL MENOS UNA RESPUESTA FUE INCORRECTA.")
+            print("⚙️ TU FUNCIÓN TIENE ALGÚN BUG EN CASOS EXTREMOS QUE NO SE MANIFESTÓ")
+            print(f"EN LOS PRIMEROS {testcase_cutoff} CASOS DE PRUEBA. SI NO PUEDES ENCONTRAR ESTE")
+            print("BUG DESPUÉS DE DESCANSAR, POR FAVOR ENVÍA TU FUNCIÓN A ilkka.kokkarinen@gmail.com PARA AYUDAR A")
+            print(f"MEJORAR LA CALIDAD DE ESTOS CASOS DE PRUEBA AUTOMATIZADOS. ASEGÚRATE DE QUE TU {function_name}")
+            print("NO UTILIZA CÁLCULOS DE PUNTO FLOTANTE CUYA PRECISIÓN SE PIERDE UNA VEZ QUE LOS NÚMEROS")
+            print("INVOLUCRADOS SE VUELVEN LO SUFICIENTEMENTE GRANDES.")
             return -1
     else:
-        print(f"({output_len}) ", end='')
+        print(f"📏 (Longitud de salida: {output_len}) ", end='')
         return 0
+
 
 
 # Sort the suite of test cases according to the order in which
@@ -206,7 +198,7 @@ def test_one_function(f, test_generator, expected_checksum=None, recorder=None, 
 def sort_by_source():
     funcs, recognized = dict(), set(f for (f, _, _) in testcases)
     need_check = [f for (f, test, check) in testcases if check is None]
-    with open('labs109.py', 'r', encoding='utf-8') as source:
+    with open('verificar_codigo.py', 'r', encoding='utf-8') as source:
         for (line_no, line) in enumerate(source):
             if line.startswith("def "):
                 function_name = line[4:line.find('(')].strip()
@@ -223,12 +215,12 @@ def sort_by_source():
 
 def test_all_functions(module, recorder=None, known=None):
     if recorder:
-        print("\nRECORDING THE RESULTS OF INSTRUCTOR MODEL SOLUTIONS.")
-        print("IF YOU ARE A STUDENT, YOU SHOULD NOT BE SEEING THIS")
-        print(f"MESSAGE!!! ENSURE THAT THE FILE {expected_answers_file} FROM")
-        print("WHEREVER YOU DOWNLOADED THIS AUTOMATED TESTER IS ALSO")
-        print("PROPERLY PLACED IN THIS VERY SAME WORKING DIRECTORY!!!\n")
-        print(f"Recording {testcase_cutoff} test cases per problem.\n")
+        print("\n📋 GRABANDO LOS RESULTADOS DE LAS SOLUCIONES DEL MODELO DEL INSTRUCTOR.")
+        print("❗️ SI ERES UN ESTUDIANTE, NO DEBERÍAS ESTAR VIENDO ESTE MENSAJE ❗️")
+        print(f"🗂️ ASEGÚRATE DE QUE EL ARCHIVO {expected_answers_file} QUE DESCARGASTE DE")
+        print("LA MISMA FUENTE DEL TESTER AUTOMATIZADO ESTÉ COLOCADO CORRECTAMENTE")
+        print("EN ESTE MISMO DIRECTORIO DE TRABAJO!!!\n")
+        print(f"📝 Grabando {testcase_cutoff} casos de prueba por problema.\n")
     accepted_count, total = 0, 0
     if recorder:
         print(f"{version_prefix}{version}", file=recorder)
@@ -242,11 +234,12 @@ def test_all_functions(module, recorder=None, known=None):
         if result >= 0:
             accepted_count += 1
     if recorder:
-        print("\nRecording model answers complete.")
+        print("\n✅ Grabación de respuestas modelo completa.")
     else:
-        print(f"{accepted_count} out of {total} functions ", end="")
-        print(f"of {len(testcases)} possible work.")
+        print(f"✅ {accepted_count} de {total} funciones ", end="")
+        print(f"de {len(testcases)} posibles funcionan correctamente.")
     return accepted_count
+
 
 
 # Named constants used by some test case generators.
@@ -5214,60 +5207,60 @@ testcases = [
 # YYY
 
 def run_all():
-    print(f"109 Python Problems tester, {version}, Ilkka Kokkarinen.")
-    print("Latest version always at https://github.com/ikokkari/PythonProblems")
+    print(f"\n🤖 Probador de 109 Problemas de Python")
     try:
         if version_info < (3, 7, 0):
-            print("THIS SCRIPT REQUIRES PYTHON 3.7.0 OR LATER. EXITING.")
+            print("🚫 ESTE SCRIPT REQUIERE PYTHON 3.7.0 O POSTERIOR. SALIENDO.\n")
             exit(1)
+        
         implemented = sort_by_source()
-        print(f"Student file labs109.py contains {len(implemented)} recognized functions to test.")
+        print(f"📂 El archivo del estudiante verificar_codigo.py contiene {len(implemented)} funciones reconocidas para probar.\n")
+        
         if use_expected_answers:
-            # If record file exists, read the expected answers from it.
             if os.path.exists(expected_answers_file):
                 known, curr, verified = dict(), '', False
                 with gzip.open(expected_answers_file, 'rt', encoding='utf-8') as rf:
                     storing = False
                     for line in rf:
                         line = line.strip()
-                        # Special marker to indicate start of new function.
                         if line.startswith(function_prefix):
                             curr = line[len(function_prefix):]
                             storing = curr in implemented
                             known[curr] = []
-                        # Special marker used to code the version information.
                         elif line.startswith(version_prefix):
                             if line[len(version_prefix):] != version:
-                                print(f'VERSION MISMATCH In {expected_answers_file} !!!!!')
-                                print(f'REQUIRED: {version}')
-                                print(f'ACTUAL  : {line[len(version_prefix):]}')
+                                print(f"❗ DESAJUSTE DE VERSIÓN en {expected_answers_file} !!!!!")
+                                print(f"   REQUERIDO: {version}")
+                                print(f"   ACTUAL   : {line[len(version_prefix):]}\n")
                                 exit(2)
                             else:
                                 verified = True
                         elif storing:
                             known[curr].append(line)
-                if not verified:  # To recognize super old versions of expected answers.
-                    print(f"YOU ARE USING A VERY OBSOLETE VERSION OF {expected_answers_file}. EXITING.")
+                
+                if not verified:
+                    print(f"❗ ESTÁS USANDO UNA VERSIÓN MUY OBSOLETA DE {expected_answers_file}. SALIENDO.\n")
                     exit(3)
                 else:
-                    print(f"Finished reading expected answers.")
-                    test_all_functions(labs109, known=known)
+                    print("✅ Lectura de respuestas esperadas finalizada.\n")
+                    test_all_functions(verificar_codigo, known=known)
             else:
-                # If the record file doesn't exist, record the model answers.
                 if can_record:
                     with gzip.open(expected_answers_file, 'wt') as rf:
-                        test_all_functions(labs109, recorder=rf)
+                        test_all_functions(verificar_codigo, recorder=rf)
                 else:
-                    print("You are missing the expected_answers file. Please download this file")
-                    print("from the same place where you got this tester script from, to allow")
-                    print("this tester to emit proper bug reports for test cases.")
-                    test_all_functions(labs109)
+                    print("⚠️ Falta el archivo expected_answers. Por favor, descarga este archivo")
+                    print("   desde el mismo lugar donde obtuviste este script de prueba, para permitir")
+                    print("   que este probador emita informes de errores adecuados para los casos de prueba.\n")
+                    test_all_functions(verificar_codigo)
         else:
-            print("Testing functions without using recorded expected answers.")
-            test_all_functions(labs109, known=None)
+            print("🔍 Probando funciones sin usar respuestas esperadas grabadas.\n")
+            test_all_functions(verificar_codigo, known=None)
     except Exception as e:
-        print(f"TESTER CRASHED WITH ERROR: {e}")
+        print(f"💥 EL PROBADOR SE HA BLOQUEADO CON ERROR: {e}\n")
         exit(4)
+
+
 
 
 # Given teacher and student implementations of the same function, run the
@@ -5319,4 +5312,4 @@ run_all()
 
 
 # teacher student generator
-#discrepancy(labs109.des_chiffres, des_chiffres, des_chiffres_generator, stop_at_first=True)
+#discrepancy(testeo_main.des_chiffres, des_chiffres, des_chiffres_generator, stop_at_first=True)
