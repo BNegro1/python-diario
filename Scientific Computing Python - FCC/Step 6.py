@@ -5,5 +5,5 @@ You can also access string characters starting from the end of the string. The l
 Now modify your existing print() call to print the last character in your string.
 '''
 
-text = 'Hello World aa'
+text = 'Hello World'
 print(text[-1])
