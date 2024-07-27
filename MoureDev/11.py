@@ -14,3 +14,5 @@ d = (4/2)**(5)+1
 print(d)
 e = (-3)**2 # Inversa = 9; Potencia neg. dentro de paréntesis.
 print(e)
+f = -(3**(2))
+print(f)
